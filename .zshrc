@@ -23,14 +23,20 @@ setopt HIST_IGNORE_ALL_DUPS
 ## Kubectl Auto-Completion
 source <(kubectl completion zsh)
 
-## zsh-kubectl-prompt
+## START of zsh-kubectl-prompt ##
 autoload -U colors; colors
 source $(brew ls zsh-kubectl-prompt | grep 'kubectl.zsh')
 # [[ "$(kubectl config current-context)" =~ "aks-prod" ]] && color=red || color=green
-RPROMPT='%{$bg[$([[ "$(kubectl config current-context)" =~ "aks-prod" ]] && echo red || echo green)]$fg[black]%}[$ZSH_KUBECTL_PROMPT]%{$reset_color%}'
-# customization
-zstyle ':zsh-kubectl-prompt:' separator '|'
 
+# custom color based on context
+setopt extendedglob
+declare -A configcolors
+configcolors=('aks-dev' green 'aks-stage' yellow 'aks-prod' red '*^(dev|stage|prod)' white)
+RPROMPT='%{$bg[$(echo ${configcolors[(k)$(echo "$(kubectl config current-context)")]})]$fg[black]%}[$ZSH_KUBECTL_PROMPT]%{$reset_color%}'
+
+# further customization
+zstyle ':zsh-kubectl-prompt:' separator '|'
+## END of zsh-kubectl-prompt ##
 
 ## hook for direnv
 eval "$(direnv hook zsh)"
